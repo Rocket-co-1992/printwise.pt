@@ -1,0 +1,118 @@
+{% extends "layout/main.twig" %}
+
+{% block title %}Contato - PrintWise{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-6 mb-4 mb-md-0">
+            <h2 class="mb-4">Entre em Contato</h2>
+            <p class="lead mb-4">Tem alguma dúvida ou precisa de assistência? Entre em contato conosco através do formulário abaixo ou use um dos nossos outros canais de atendimento.</p>
+            
+            <form action="/contact/send" method="post">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Nome Completo</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Telefone</label>
+                    <input type="tel" class="form-control" id="phone" name="phone">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="subject" class="form-label">Assunto</label>
+                    <select class="form-select" id="subject" name="subject" required>
+                        <option value="">Selecione um assunto</option>
+                        <option value="Orçamento">Orçamento</option>
+                        <option value="Dúvidas sobre produtos">Dúvidas sobre produtos</option>
+                        <option value="Acompanhamento de pedido">Acompanhamento de pedido</option>
+                        <option value="Suporte técnico">Suporte técnico</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="message" class="form-label">Mensagem</label>
+                    <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="privacy_policy" name="privacy_policy" required>
+                    <label class="form-check-label" for="privacy_policy">Concordo com a <a href="/privacy-policy">Política de Privacidade</a></label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Enviar Mensagem</button>
+            </form>
+        </div>
+        
+        <div class="col-md-5 offset-md-1">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h3 class="card-title">Informações de Contato</h3>
+                    <p class="card-text">Entre em contato através de um dos nossos canais:</p>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0 me-3">
+                            <i class="bi bi-envelope text-primary" style="font-size: 1.5rem;"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-0">Email</h5>
+                            <p class="mb-0">contato@printwise.pt</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0 me-3">
+                            <i class="bi bi-telephone text-primary" style="font-size: 1.5rem;"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-0">Telefone</h5>
+                            <p class="mb-0">+351 123 456 789</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0 me-3">
+                            <i class="bi bi-geo-alt text-primary" style="font-size: 1.5rem;"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-0">Endereço</h5>
+                            <p class="mb-0">Rua Exemplo, 123<br>Cidade - Portugal<br>Código Postal: 1234-567</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <i class="bi bi-clock text-primary" style="font-size: 1.5rem;"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-0">Horário de Funcionamento</h5>
+                            <p class="mb-0">Segunda a Sexta: 9h às 18h<br>Sábado: 9h às 13h</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title">Localização</h3>
+                    <div class="ratio ratio-16x9">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3113.7648887810906!2d-9.1365583!3d38.7077507!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd193477b40ec39d%3A0xb1e5d5e03ad5b8c0!2sAvenida%20da%20Liberdade%2C%20Lisboa!5e0!3m2!1spt-PT!2spt!4v1635778150647!5m2!1spt-PT!2spt" 
+                            width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+{% endblock %}

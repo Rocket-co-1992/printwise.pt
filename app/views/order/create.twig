@@ -1,0 +1,85 @@
+{% extends "layout/main.twig" %}
+
+{% block title %}Novo Pedido - PrintWise{% endblock %}
+
+{% block content %}
+<div class="card shadow">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Novo Pedido</h4>
+    </div>
+    <div class="card-body">
+        <form action="/order/store" method="post" enctype="multipart/form-data">
+            <div class="mb-4">
+                <h5>Selecione o Produto</h5>
+                <div class="row row-cols-1 row-cols-md-3 g-4">
+                    {% if products|length > 0 %}
+                        {% for product in products %}
+                        <div class="col">
+                            <div class="card h-100">
+                                <img src="{{ product.image_url|default('/assets/images/default-product.jpg') }}" class="card-img-top" alt="{{ product.name }}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ product.name }}</h5>
+                                    <p class="card-text">{{ product.description|slice(0, 100) }}...</p>
+                                    <p class="fw-bold">€{{ product.price|number_format(2, ',', '.') }}</p>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="product_id" id="product_{{ product.id }}" value="{{ product.id }}" required>
+                                        <label class="form-check-label" for="product_{{ product.id }}">
+                                            Selecionar
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                Nenhum produto disponível no momento.
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="quantity" class="form-label">Quantidade</label>
+                    <input type="number" class="form-control" id="quantity" name="quantity" value="1" min="1" required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="specifications" class="form-label">Especificações</label>
+                <textarea class="form-control" id="specifications" name="specifications" rows="4" placeholder="Descreva os detalhes do seu pedido, como tamanho, cor, acabamento, etc."></textarea>
+            </div>
+
+            <div class="mb-4">
+                <label for="files" class="form-label">Arquivos para Impressão</label>
+                <input class="form-control" type="file" id="files" name="files[]" multiple>
+                <div class="form-text">Formatos suportados: PDF, AI, PSD, JPEG, PNG. Tamanho máximo: 20MB por arquivo.</div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="/order" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Enviar Pedido</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const productCards = document.querySelectorAll('.card');
+    productCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const radioInput = this.querySelector('input[type="radio"]');
+            if (radioInput) {
+                radioInput.checked = true;
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

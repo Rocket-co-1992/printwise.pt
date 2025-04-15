@@ -1,0 +1,48 @@
+{% extends "layout/main.twig" %}
+
+{% block title %}Meu Perfil - PrintWise{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Menu do Usuário</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="/user/profile" class="list-group-item list-group-item-action active">Meu Perfil</a>
+                <a href="/order" class="list-group-item list-group-item-action">Meus Pedidos</a>
+                <a href="/user/change-password" class="list-group-item list-group-item-action">Alterar Senha</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-9">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Meu Perfil</h4>
+            </div>
+            <div class="card-body">
+                <form action="/user/update-profile" method="post">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Nome Completo</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ user.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Telefone</label>
+                        <input type="tel" class="form-control" id="phone" name="phone" value="{{ user.phone }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Endereço</label>
+                        <textarea class="form-control" id="address" name="address" rows="3">{{ user.address }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Atualizar Perfil</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

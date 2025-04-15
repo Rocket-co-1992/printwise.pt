@@ -1,0 +1,334 @@
+{% extends "layouts/admin.twig" %}
+
+{% block page_title %}Editar Orçamento #{{ quote.id }}{% endblock %}
+
+{% block page_actions %}
+<a href="{{ app_url }}/admin/quotes/view/{{ quote.id }}" class="btn btn-sm btn-secondary">
+    <i class="bi bi-arrow-left"></i> Voltar para Detalhes
+</a>
+{% endblock %}
+
+{% block admin_content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold">Editar Orçamento</h6>
+    </div>
+    <div class="card-body">
+        <form method="post" action="{{ app_url }}/admin/quotes/update/{{ quote.id }}" id="quoteForm">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="client_id" class="form-label">Cliente</label>
+                    <select class="form-select" id="client_id" name="client_id" required>
+                        <option value="">Selecione um cliente</option>
+                        {% for client in clients %}
+                            <option value="{{ client.id }}" {% if quote.client_id == client.id %}selected{% endif %}>
+                                {{ client.name }} {% if client.company_name %}({{ client.company_name }}){% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="title" class="form-label">Título do Orçamento</label>
+                    <input type="text" class="form-control" id="title" name="title" 
+                           value="{{ quote.title }}" required>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label for="description" class="form-label">Descrição</label>
+                    <textarea class="form-control" id="description" name="description" 
+                              rows="2">{{ quote.description }}</textarea>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label d-block">Tipo de Produto</label>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="product_type" 
+                               id="small_format" value="small" {% if quote.product_type == 'small' %}checked{% endif %}>
+                        <label class="form-check-label" for="small_format">
+                            Pequeno Formato
+                        </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="product_type" 
+                               id="large_format" value="large" {% if quote.product_type == 'large' %}checked{% endif %}>
+                        <label class="form-check-label" for="large_format">
+                            Grande Formato
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="col-md-8">
+                    <div id="small_products_container" {% if quote.product_type != 'small' %}style="display: none;"{% endif %}>
+                        <label for="product_id_small" class="form-label">Produto</label>
+                        <select class="form-select product-select" id="product_id_small" name="product_id" 
+                                {% if quote.product_type != 'small' %}disabled{% endif %}>
+                            <option value="">Selecione um produto</option>
+                            {% for product in smallProducts %}
+                                <option value="{{ product.id }}" data-price="{{ product.base_price }}"
+                                        {% if quote.product_type == 'small' and quote.product_id == product.id %}selected{% endif %}>
+                                    {{ product.name }} ({{ product.base_price|number_format(2, ',', '.') }} €)
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div id="large_products_container" {% if quote.product_type != 'large' %}style="display: none;"{% endif %}>
+                        <label for="product_id_large" class="form-label">Produto</label>
+                        <select class="form-select product-select" id="product_id_large" name="product_id" 
+                                {% if quote.product_type != 'large' %}disabled{% endif %}>
+                            <option value="">Selecione um produto</option>
+                            {% for product in largeProducts %}
+                                <option value="{{ product.id }}" data-price="{{ product.base_price }}"
+                                        {% if quote.product_type == 'large' and quote.product_id == product.id %}selected{% endif %}>
+                                    {{ product.name }} ({{ product.base_price|number_format(2, ',', '.') }} €/m²)
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campos específicos para pequenos formatos -->
+            <div id="small_format_fields" class="format-fields" {% if quote.product_type != 'small' %}style="display: none;"{% endif %}>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="colors" class="form-label">Cores</label>
+                        <select class="form-select" id="colors" name="colors">
+                            <option value="1" {% if quote.colors == 1 %}selected{% endif %}>1 cor (preto e branco)</option>
+                            <option value="2" {% if quote.colors == 2 %}selected{% endif %}>2 cores</option>
+                            <option value="4" {% if quote.colors == 4 or quote.colors is not defined %}selected{% endif %}>4 cores (full color)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="quantity_small" class="form-label">Quantidade</label>
+                        <input type="number" class="form-control" id="quantity_small" name="quantity" 
+                               min="1" value="{{ quote.quantity }}" {% if quote.product_type != 'small' %}disabled{% endif %}>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label">Acabamentos</label>
+                        <div id="small_finishings" class="finishing-options">
+                            {% for finishing in finishings %}
+                                {% if finishing.product_type == 'small' or finishing.product_type == 'both' %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                               id="finishing_{{ finishing.id }}" name="finishing_ids[]" 
+                                               value="{{ finishing.id }}" 
+                                               data-price-factor="{{ finishing.price_factor }}"
+                                               data-is-multiplier="{{ finishing.is_multiplier }}"
+                                               {% if finishing.id in finishingIds %}checked{% endif %}>
+                                        <label class="form-check-label" for="finishing_{{ finishing.id }}">
+                                            {{ finishing.name }}
+                                            {% if finishing.is_multiplier %}
+                                                (x{{ finishing.price_factor }})
+                                            {% else %}
+                                                (+{{ finishing.price_factor|number_format(2, ',', '.') }} €)
+                                            {% endif %}
+                                        </label>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campos específicos para grandes formatos -->
+            <div id="large_format_fields" class="format-fields" {% if quote.product_type != 'large' %}style="display: none;"{% endif %}>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="width" class="form-label">Largura (cm)</label>
+                        <input type="number" class="form-control" id="width" name="width" 
+                               min="1" step="0.1" value="{{ quote.width|default('100') }}"
+                               {% if quote.product_type != 'large' %}disabled{% endif %}>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="height" class="form-label">Altura (cm)</label>
+                        <input type="number" class="form-control" id="height" name="height" 
+                               min="1" step="0.1" value="{{ quote.height|default('70') }}"
+                               {% if quote.product_type != 'large' %}disabled{% endif %}>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="quantity_large" class="form-label">Quantidade</label>
+                        <input type="number" class="form-control" id="quantity_large" name="quantity" 
+                               min="1" value="{{ quote.quantity }}"
+                               {% if quote.product_type != 'large' %}disabled{% endif %}>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label">Acabamentos</label>
+                        <div id="large_finishings" class="finishing-options">
+                            {% for finishing in finishings %}
+                                {% if finishing.product_type == 'large' or finishing.product_type == 'both' %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                               id="finishing_{{ finishing.id }}" name="finishing_ids[]" 
+                                               value="{{ finishing.id }}"
+                                               data-price-factor="{{ finishing.price_factor }}"
+                                               data-is-multiplier="{{ finishing.is_multiplier }}"
+                                               {% if finishing.id in finishingIds %}checked{% endif %}>
+                                        <label class="form-check-label" for="finishing_{{ finishing.id }}">
+                                            {{ finishing.name }}
+                                            {% if finishing.is_multiplier %}
+                                                (x{{ finishing.price_factor }})
+                                            {% else %}
+                                                (+{{ finishing.price_factor|number_format(2, ',', '.') }} €)
+                                            {% endif %}
+                                        </label>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4 mt-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Detalhes do Orçamento</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Valor Unitário:</strong> <span id="unit_price">{{ quote.unit_price|number_format(2, ',', '.') }} €</span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Valor Total:</strong> <span id="total_price">{{ quote.total_price|number_format(2, ',', '.') }} €</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{{ app_url }}/admin/quotes/view/{{ quote.id }}" class="btn btn-secondary me-md-2">Cancelar</a>
+                <button type="button" id="calculate" class="btn btn-info me-md-2">Recalcular</button>
+                <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Variáveis para controle dos formulários
+        const smallFormatRadio = document.getElementById('small_format');
+        const largeFormatRadio = document.getElementById('large_format');
+        const smallProductsContainer = document.getElementById('small_products_container');
+        const largeProductsContainer = document.getElementById('large_products_container');
+        const smallFormatFields = document.getElementById('small_format_fields');
+        const largeFormatFields = document.getElementById('large_format_fields');
+        const smallProductSelect = document.getElementById('product_id_small');
+        const largeProductSelect = document.getElementById('product_id_large');
+        const quantitySmall = document.getElementById('quantity_small');
+        const quantityLarge = document.getElementById('quantity_large');
+        const calculateBtn = document.getElementById('calculate');
+        const widthInput = document.getElementById('width');
+        const heightInput = document.getElementById('height');
+        
+        // Função para alternar entre pequeno e grande formato
+        function toggleFormatFields() {
+            if (smallFormatRadio.checked) {
+                smallProductsContainer.style.display = 'block';
+                largeProductsContainer.style.display = 'none';
+                smallFormatFields.style.display = 'block';
+                largeFormatFields.style.display = 'none';
+                smallProductSelect.disabled = false;
+                largeProductSelect.disabled = true;
+                quantitySmall.disabled = false;
+                quantityLarge.disabled = true;
+                widthInput.disabled = true;
+                heightInput.disabled = true;
+            } else {
+                smallProductsContainer.style.display = 'none';
+                largeProductsContainer.style.display = 'block';
+                smallFormatFields.style.display = 'none';
+                largeFormatFields.style.display = 'block';
+                smallProductSelect.disabled = true;
+                largeProductSelect.disabled = false;
+                quantitySmall.disabled = true;
+                quantityLarge.disabled = false;
+                widthInput.disabled = false;
+                heightInput.disabled = false;
+            }
+        }
+        
+        // Eventos para alternar entre formatos
+        smallFormatRadio.addEventListener('change', toggleFormatFields);
+        largeFormatRadio.addEventListener('change', toggleFormatFields);
+        
+        // Calcular orçamento
+        calculateBtn.addEventListener('click', function() {
+            calculateQuote();
+        });
+        
+        // Função para calcular o orçamento
+        function calculateQuote() {
+            const formData = new FormData();
+            const productType = smallFormatRadio.checked ? 'small' : 'large';
+            
+            // Adicionar dados comuns
+            formData.append('product_type', productType);
+            
+            // Adicionar dados específicos para cada tipo
+            if (productType === 'small') {
+                formData.append('product_id', smallProductSelect.value);
+                formData.append('colors', document.getElementById('colors').value);
+                formData.append('quantity', quantitySmall.value);
+                
+                // Adicionar acabamentos selecionados para pequeno formato
+                document.querySelectorAll('#small_finishings input[type="checkbox"]:checked').forEach(checkbox => {
+                    formData.append('finishing_ids[]', checkbox.value);
+                });
+            } else {
+                formData.append('product_id', largeProductSelect.value);
+                formData.append('width', widthInput.value);
+                formData.append('height', heightInput.value);
+                formData.append('quantity', quantityLarge.value);
+                
+                // Adicionar acabamentos selecionados para grande formato
+                document.querySelectorAll('#large_finishings input[type="checkbox"]:checked').forEach(checkbox => {
+                    formData.append('finishing_ids[]', checkbox.value);
+                });
+            }
+            
+            // Enviar requisição para cálculo
+            fetch('{{ app_url }}/api/quotes/calculate', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Erro: ' + data.error);
+                    return;
+                }
+                
+                // Atualizar valores na interface
+                document.getElementById('unit_price').textContent = data.formattedUnitPrice;
+                document.getElementById('total_price').textContent = data.formattedTotalPrice;
+            })
+            .catch(error => {
+                console.error('Erro ao calcular orçamento:', error);
+                alert('Ocorreu um erro ao calcular o orçamento. Por favor tente novamente.');
+            });
+        }
+    });
+</script>
+{% endblock %}

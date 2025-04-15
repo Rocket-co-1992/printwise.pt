@@ -1,0 +1,120 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}Contato | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <h1 class="fw-bold">Entre em Contato</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ app_url }}/">Início</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Contato</li>
+                </ol>
+            </nav>
+            <hr>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-5">
+            <h2 class="mb-4">Envie sua mensagem</h2>
+            
+            {% if success %}
+                <div class="alert alert-success" role="alert">
+                    {{ success }}
+                </div>
+            {% endif %}
+            
+            {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endif %}
+            
+            <form method="post" action="{{ app_url }}/contact">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Nome completo</label>
+                    <input type="text" class="form-control" id="name" name="name" required value="{{ contact.name|default('') }}">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" required value="{{ contact.email|default('') }}">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Telefone</label>
+                    <input type="tel" class="form-control" id="phone" name="phone" value="{{ contact.phone|default('') }}">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="subject" class="form-label">Assunto</label>
+                    <select class="form-select" id="subject" name="subject" required>
+                        <option value="">Selecione um assunto</option>
+                        <option value="Orçamento" {% if contact.subject|default('') == 'Orçamento' %}selected{% endif %}>Solicitação de Orçamento</option>
+                        <option value="Dúvidas" {% if contact.subject|default('') == 'Dúvidas' %}selected{% endif %}>Dúvidas sobre serviços</option>
+                        <option value="Suporte" {% if contact.subject|default('') == 'Suporte' %}selected{% endif %}>Suporte técnico</option>
+                        <option value="Reclamação" {% if contact.subject|default('') == 'Reclamação' %}selected{% endif %}>Reclamação</option>
+                        <option value="Outro" {% if contact.subject|default('') == 'Outro' %}selected{% endif %}>Outro assunto</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="message" class="form-label">Mensagem</label>
+                    <textarea class="form-control" id="message" name="message" rows="5" required>{{ contact.message|default('') }}</textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Enviar mensagem</button>
+            </form>
+        </div>
+        
+        <div class="col-md-6">
+            <h2 class="mb-4">Informações de contato</h2>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="mb-3"><i class="bi bi-geo-alt-fill text-primary me-2"></i> Endereço</h5>
+                    <p class="mb-0">Av. da Liberdade, 245</p>
+                    <p>1250-143 Lisboa, Portugal</p>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="mb-3"><i class="bi bi-telephone-fill text-primary me-2"></i> Telefone</h5>
+                    <p class="mb-1"><strong>Atendimento:</strong> +351 21 123 4567</p>
+                    <p><strong>Suporte técnico:</strong> +351 21 123 4568</p>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="mb-3"><i class="bi bi-envelope-fill text-primary me-2"></i> Email</h5>
+                    <p class="mb-1"><strong>Informações:</strong> info@printwise.pt</p>
+                    <p><strong>Orçamentos:</strong> orcamento@printwise.pt</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="mb-3"><i class="bi bi-clock-fill text-primary me-2"></i> Horário de funcionamento</h5>
+                    <p class="mb-1"><strong>Segunda a Sexta:</strong> 9h às 18h</p>
+                    <p><strong>Sábado:</strong> 9h às 13h</p>
+                    <p><strong>Domingo:</strong> Fechado</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3 class="mb-4">Nossa localização</h3>
+            <div class="ratio ratio-16x9">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3112.7641424903154!2d-9.144596584378639!3d38.71913497959789!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd19339651ac4c15%3A0x893d9f9ffa489c9c!2sAv.%20da%20Liberdade%2C%20Lisboa%2C%20Portugal!5e0!3m2!1sen!2sus!4v1650027811008!5m2!1sen!2sus" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

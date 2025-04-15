@@ -1,0 +1,189 @@
+<?php
+
+namespace PrintWise\Models;
+
+use PrintWise\Core\Database;
+use PrintWise\Core\Model;
+
+class Quote extends Model 
+{
+    protected string $table = 'quotes';
+    
+    public function findAllWithDetails(): array
+    {
+        $sql = "SELECT q.*, c.name as client_name, p.name as product_name, p.type as product_type
+                FROM {$this->table} q
+                JOIN clients c ON q.client_id = c.id
+                JOIN products p ON q.product_id = p.id
+                ORDER BY q.id DESC";
+        $stmt = Database::query($sql);
+        return $stmt->fetchAll();
+    }
+    
+    public function findWithDetails(int $id): ?array
+    {
+        $sql = "SELECT q.*, c.name as client_name, c.email as client_email,
+                p.name as product_name, p.type as product_type
+                FROM {$this->table} q
+                JOIN clients c ON q.client_id = c.id
+                JOIN products p ON q.product_id = p.id
+                WHERE q.id = ?";
+        $stmt = Database::query($sql, [$id]);
+        $result = $stmt->fetch();
+        return $result ?: null;
+    }
+    
+    public function findByHash(string $hash): ?array
+    {
+        $sql = "SELECT q.*, c.name as client_name, c.email as client_email,
+                p.name as product_name, p.type as product_type
+                FROM {$this->table} q
+                JOIN clients c ON q.client_id = c.id
+                JOIN products p ON q.product_id = p.id
+                WHERE q.hash = ?";
+        $stmt = Database::query($sql, [$hash]);
+        $result = $stmt->fetch();
+        return $result ?: null;
+    }
+    
+    public function findByStatus(string $status): array
+    {
+        return $this->where(['status' => $status]);
+    }
+    
+    public function addFinishings(int $quoteId, array $finishingIds): void
+    {
+        foreach ($finishingIds as $finishingId) {
+            $sql = "INSERT INTO quote_finishings (quote_id, finishing_id) VALUES (?, ?)";
+            Database::query($sql, [$quoteId, $finishingId]);
+        }
+    }
+    
+    public function removeFinishings(int $quoteId): void
+    {
+        $sql = "DELETE FROM quote_finishings WHERE quote_id = ?";
+        Database::query($sql, [$quoteId]);
+    }
+    
+    public function countByStatus(): array
+    {
+        $sql = "SELECT status, COUNT(*) as count FROM {$this->table} GROUP BY status";
+        $stmt = Database::query($sql);
+        return $stmt->fetchAll();
+    }
+    
+    public function generateHash(): string
+    {
+        return bin2hex(random_bytes(32));
+    }
+    
+    public function calculateSmallFormatPrice(int $productId, int $quantity, int $colors, array $finishingIds): float
+    {
+        // Buscar preço base do produto
+        $productModel = new Product();
+        $product = $productModel->find($productId);
+        
+        if (!$product) {
+            throw new \Exception("Produto não encontrado");
+        }
+        
+        // Preço base por unidade
+        $unitPrice = $product['base_price'];
+        
+        // Fator de multiplicação por quantidade
+        $quantityFactor = 1.0;
+        if ($quantity <= 100) {
+            $quantityFactor = 1.0;
+        } elseif ($quantity <= 500) {
+            $quantityFactor = 0.9;  // 10% de desconto
+        } elseif ($quantity <= 1000) {
+            $quantityFactor = 0.8;  // 20% de desconto
+        } else {
+            $quantityFactor = 0.7;  // 30% de desconto
+        }
+        
+        // Fator de multiplicação por cores
+        $colorFactor = 1.0;
+        if ($colors == 1) {
+            $colorFactor = 0.8;  // Preto e branco é mais barato
+        }
+        
+        // Aplicar fatores ao preço base
+        $unitPrice *= $quantityFactor * $colorFactor;
+        
+        // Aplicar acabamentos
+        if (!empty($finishingIds)) {
+            $finishingModel = new Finishing();
+            foreach ($finishingIds as $finishingId) {
+                $finishing = $finishingModel->find($finishingId);
+                
+                if ($finishing['is_multiplier']) {
+                    // Se for multiplicador (ex: laminação)
+                    $unitPrice *= $finishing['price_factor'];
+                } else {
+                    // Se for aditivo (ex: cantos redondos)
+                    $unitPrice += $finishing['price_factor'];
+                }
+            }
+        }
+        
+        // Preço final por unidade (arredondado para 2 casas decimais)
+        return round($unitPrice, 2);
+    }
+    
+    public function calculateLargeFormatPrice(int $productId, float $width, float $height, 
+                                            int $quantity, array $finishingIds): float
+    {
+        // Buscar preço base do produto (que é por m²)
+        $productModel = new Product();
+        $product = $productModel->find($productId);
+        
+        if (!$product) {
+            throw new \Exception("Produto não encontrado");
+        }
+        
+        // Calcular área em m²
+        $area = ($width * $height) / 10000; // Converter cm² para m²
+        
+        // Preço base por unidade (preço/m² * área)
+        $unitPrice = $product['base_price'] * $area;
+        
+        // Fator de multiplicação por quantidade
+        $quantityFactor = 1.0;
+        if ($quantity <= 5) {
+            $quantityFactor = 1.0;
+        } elseif ($quantity <= 10) {
+            $quantityFactor = 0.95;  // 5% de desconto
+        } elseif ($quantity <= 20) {
+            $quantityFactor = 0.9;   // 10% de desconto
+        } else {
+            $quantityFactor = 0.85;  // 15% de desconto
+        }
+        
+        // Aplicar fator de quantidade
+        $unitPrice *= $quantityFactor;
+        
+        // Aplicar acabamentos
+        if (!empty($finishingIds)) {
+            $finishingModel = new Finishing();
+            foreach ($finishingIds as $finishingId) {
+                $finishing = $finishingModel->find($finishingId);
+                
+                if ($finishing['is_multiplier']) {
+                    // Se for multiplicador (ex: laminação)
+                    $unitPrice *= $finishing['price_factor'];
+                } else {
+                    // Se for aditivo (ex: ilhós) - aplicado por unidade, não por m²
+                    $unitPrice += $finishing['price_factor'];
+                }
+            }
+        }
+        
+        // Preço mínimo por unidade (para peças muito pequenas)
+        $minPrice = 10.0;
+        $unitPrice = max($unitPrice, $minPrice);
+        
+        // Preço final por unidade (arredondado para 2 casas decimais)
+        return round($unitPrice, 2);
+    }
+}

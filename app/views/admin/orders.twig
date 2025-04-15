@@ -1,0 +1,162 @@
+{% extends "layout/main.twig" %}
+
+{% block title %}Gerenciar Pedidos - PrintWise{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Menu Admin</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="/admin/dashboard" class="list-group-item list-group-item-action">Dashboard</a>
+                    <a href="/admin/orders" class="list-group-item list-group-item-action active">Pedidos</a>
+                    <a href="/admin/products" class="list-group-item list-group-item-action">Produtos</a>
+                    <a href="/admin/users" class="list-group-item list-group-item-action">Usuários</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Gerenciar Pedidos</h2>
+                <div>
+                    <form class="d-flex" action="/admin/orders" method="get">
+                        <select class="form-select me-2" name="status">
+                            <option value="">Todos os Status</option>
+                            <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pendentes</option>
+                            <option value="processing" {% if status == 'processing' %}selected{% endif %}>Em Processamento</option>
+                            <option value="completed" {% if status == 'completed' %}selected{% endif %}>Concluídos</option>
+                            <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>Cancelados</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">Filtrar</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Data</th>
+                                    <th>Cliente</th>
+                                    <th>Produto</th>
+                                    <th>Quantidade</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if orders|length > 0 %}
+                                    {% for order in orders %}
+                                    <tr>
+                                        <td>{{ order.id }}</td>
+                                        <td>{{ order.created_at|date("d/m/Y H:i") }}</td>
+                                        <td>
+                                            <a href="/admin/users/{{ order.user_id }}">{{ order.user_name }}</a>
+                                        </td>
+                                        <td>{{ order.product_name }}</td>
+                                        <td>{{ order.quantity }}</td>
+                                        <td>€{{ order.total|number_format(2, ',', '.') }}</td>
+                                        <td>
+                                            {% if order.status == 'pending' %}
+                                                <span class="badge bg-warning">Pendente</span>
+                                            {% elseif order.status == 'processing' %}
+                                                <span class="badge bg-info">Em Processamento</span>
+                                            {% elseif order.status == 'completed' %}
+                                                <span class="badge bg-success">Concluído</span>
+                                            {% elseif order.status == 'cancelled' %}
+                                                <span class="badge bg-danger">Cancelado</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a href="/admin/orders/{{ order.id }}" class="btn btn-sm btn-primary">Detalhes</a>
+                                                <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    Status
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <form action="/admin/orders/update-status" method="post">
+                                                            <input type="hidden" name="order_id" value="{{ order.id }}">
+                                                            <input type="hidden" name="status" value="pending">
+                                                            <button type="submit" class="dropdown-item">Pendente</button>
+                                                        </form>
+                                                    </li>
+                                                    <li>
+                                                        <form action="/admin/orders/update-status" method="post">
+                                                            <input type="hidden" name="order_id" value="{{ order.id }}">
+                                                            <input type="hidden" name="status" value="processing">
+                                                            <button type="submit" class="dropdown-item">Em Processamento</button>
+                                                        </form>
+                                                    </li>
+                                                    <li>
+                                                        <form action="/admin/orders/update-status" method="post">
+                                                            <input type="hidden" name="order_id" value="{{ order.id }}">
+                                                            <input type="hidden" name="status" value="completed">
+                                                            <button type="submit" class="dropdown-item">Concluído</button>
+                                                        </form>
+                                                    </li>
+                                                    <li>
+                                                        <form action="/admin/orders/update-status" method="post">
+                                                            <input type="hidden" name="order_id" value="{{ order.id }}">
+                                                            <input type="hidden" name="status" value="cancelled">
+                                                            <button type="submit" class="dropdown-item">Cancelado</button>
+                                                        </form>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="8" class="text-center">Nenhum pedido encontrado</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if currentPage > 1 %}
+                            <li class="page-item">
+                                <a class="page-link" href="/admin/orders?page={{ currentPage - 1 }}{% if status %}&status={{ status }}{% endif %}">Anterior</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Anterior</span>
+                            </li>
+                        {% endif %}
+                        
+                        {% for i in 1..totalPages %}
+                            <li class="page-item {% if i == currentPage %}active{% endif %}">
+                                <a class="page-link" href="/admin/orders?page={{ i }}{% if status %}&status={{ status }}{% endif %}">{{ i }}</a>
+                            </li>
+                        {% endfor %}
+                        
+                        {% if currentPage < totalPages %}
+                            <li class="page-item">
+                                <a class="page-link" href="/admin/orders?page={{ currentPage + 1 }}{% if status %}&status={{ status }}{% endif %}">Próxima</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">Próxima</span>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends "layouts/admin.twig" %}
+
+{% block page_title %}Nova Empresa{% endblock %}
+
+{% block page_actions %}
+<a href="{{ app_url }}/admin/companies" class="btn btn-sm btn-secondary">
+    <i class="bi bi-arrow-left"></i> Voltar para Empresas
+</a>
+{% endblock %}
+
+{% block admin_content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold">Cadastrar Nova Empresa</h6>
+    </div>
+    <div class="card-body">
+        <form method="post" action="{{ app_url }}/admin/companies/store">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="name" class="form-label">Nome da Empresa*</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="tax_id" class="form-label">NIF*</label>
+                    <input type="text" class="form-control" id="tax_id" name="tax_id" required>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email">
+                </div>
+                <div class="col-md-6">
+                    <label for="phone" class="form-label">Telefone</label>
+                    <input type="text" class="form-control" id="phone" name="phone">
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label for="address" class="form-label">Endereço</label>
+                    <textarea class="form-control" id="address" name="address" rows="3"></textarea>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label for="postal_code" class="form-label">Código Postal</label>
+                    <input type="text" class="form-control" id="postal_code" name="postal_code">
+                </div>
+                <div class="col-md-4">
+                    <label for="city" class="form-label">Cidade</label>
+                    <input type="text" class="form-control" id="city" name="city">
+                </div>
+                <div class="col-md-4">
+                    <label for="country" class="form-label">País</label>
+                    <input type="text" class="form-control" id="country" name="country" value="Portugal">
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label for="website" class="form-label">Website</label>
+                    <input type="url" class="form-control" id="website" name="website">
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label for="notes" class="form-label">Notas</label>
+                    <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{{ app_url }}/admin/companies" class="btn btn-secondary me-md-2">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Salvar Empresa</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

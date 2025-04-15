@@ -1,0 +1,103 @@
+{% extends "layout/main.twig" %}
+
+{% block title %}Produtos - PrintWise{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Produtos e Serviços</h1>
+    
+    <div class="row mb-4">
+        <div class="col-md-9">
+            <p class="lead">Confira nossa linha completa de produtos e serviços de impressão, desde cartões de visita até banners e muito mais.</p>
+        </div>
+        <div class="col-md-3">
+            <div class="d-grid">
+                <a href="/product/categories" class="btn btn-primary">Ver por Categorias</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% if products|length > 0 %}
+            {% for product in products %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm">
+                        <img src="{{ product.image_url|default('/assets/images/default-product.jpg') }}" 
+                             class="card-img-top" 
+                             alt="{{ product.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text">{{ product.description|slice(0, 150) }}...</p>
+                            <p class="fw-bold">€{{ product.price|number_format(2, ',', '.') }}</p>
+                        </div>
+                        <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                            <small class="text-muted">{{ product.category_name }}</small>
+                            <a href="/product/show/{{ product.id }}" class="btn btn-sm btn-outline-primary">Ver Detalhes</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    Nenhum produto disponível no momento.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="my-5">
+        <h3>Por que escolher a PrintWise?</h3>
+        <div class="row row-cols-1 row-cols-md-4 g-4 mt-3">
+            <div class="col">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="bi bi-award text-primary" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <h5 class="card-title">Alta Qualidade</h5>
+                        <p class="card-text">Utilizamos os melhores equipamentos e materiais para garantir impressões perfeitas.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="bi bi-clock-history text-primary" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <h5 class="card-title">Entrega Rápida</h5>
+                        <p class="card-text">Cumprimos prazos rigorosos para atender às suas necessidades de impressão.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="bi bi-currency-euro text-primary" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <h5 class="card-title">Preços Competitivos</h5>
+                        <p class="card-text">Oferecemos excelente relação custo-benefício sem comprometer a qualidade.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="bi bi-headset text-primary" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <h5 class="card-title">Atendimento Personalizado</h5>
+                        <p class="card-text">Nossa equipe está sempre pronta para ajudar e atender às suas necessidades específicas.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+{% endblock %}

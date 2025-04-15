@@ -1,0 +1,210 @@
+{% extends "layouts/admin.twig" %}
+
+{% block page_title %}Empresa: {{ company.name }}{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    <a href="{{ app_url }}/admin/companies" class="btn btn-sm btn-secondary">
+        <i class="bi bi-arrow-left"></i> Voltar para Lista
+    </a>
+    <a href="{{ app_url }}/admin/companies/edit/{{ company.id }}" class="btn btn-sm btn-primary">
+        <i class="bi bi-pencil"></i> Editar
+    </a>
+    <button type="button" class="btn btn-sm btn-danger" onclick="confirmDelete('{{ company.id }}', '{{ company.name }}')">
+        <i class="bi bi-trash"></i> Excluir
+    </button>
+</div>
+{% endblock %}
+
+{% block admin_content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Detalhes da Empresa -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold">Informações da Empresa</h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p class="mb-0 text-muted small">Nome da Empresa</p>
+                        <p class="mb-2 font-weight-bold">{{ company.name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-0 text-muted small">NIF</p>
+                        <p class="mb-2 font-weight-bold">{{ company.tax_id }}</p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p class="mb-0 text-muted small">Email</p>
+                        <p class="mb-2">{{ company.email|default('-') }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-0 text-muted small">Telefone</p>
+                        <p class="mb-2">{{ company.phone|default('-') }}</p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <p class="mb-0 text-muted small">Endereço</p>
+                        <p class="mb-2">{{ company.address|default('-')|nl2br }}</p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <p class="mb-0 text-muted small">Código Postal</p>
+                        <p class="mb-2">{{ company.postal_code|default('-') }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="mb-0 text-muted small">Cidade</p>
+                        <p class="mb-2">{{ company.city|default('-') }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="mb-0 text-muted small">País</p>
+                        <p class="mb-2">{{ company.country|default('Portugal') }}</p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <p class="mb-0 text-muted small">Website</p>
+                        <p class="mb-2">
+                            {% if company.website %}
+                                <a href="{{ company.website }}" target="_blank">{{ company.website }}</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                {% if company.notes %}
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <p class="mb-0 text-muted small">Notas</p>
+                        <div class="card bg-light mt-1 p-3">
+                            {{ company.notes|nl2br }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-0 text-muted small">Data de Cadastro</p>
+                        <p class="mb-0">{{ company.created_at|date('d/m/Y H:i') }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-0 text-muted small">Última Atualização</p>
+                        <p class="mb-0">{{ company.updated_at|date('d/m/Y H:i') }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Estatísticas -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold">Estatísticas</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 mb-4">
+                        <div class="h5 mb-0 font-weight-bold text-primary">{{ company.clients_count|default(0) }}</div>
+                        <div class="small text-muted">Clientes</div>
+                    </div>
+                    <div class="col-6 mb-4">
+                        <div class="h5 mb-0 font-weight-bold text-success">{{ company.quotes_count|default(0) }}</div>
+                        <div class="small text-muted">Orçamentos</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de Clientes Associados -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold">Clientes Associados</h6>
+        <a href="{{ app_url }}/admin/clients/create?company_id={{ company.id }}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-circle"></i> Adicionar Cliente
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Telefone</th>
+                        <th>Orçamentos</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for client in clients %}
+                    <tr>
+                        <td>{{ client.id }}</td>
+                        <td>{{ client.name }}</td>
+                        <td>{{ client.email }}</td>
+                        <td>{{ client.phone|default('-') }}</td>
+                        <td>{{ client.quotes_count|default(0) }}</td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{{ app_url }}/admin/clients/view/{{ client.id }}" class="btn btn-sm btn-info">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ app_url }}/admin/clients/edit/{{ client.id }}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center">Nenhum cliente associado a esta empresa</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for company deletion -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir a empresa <strong id="companyName"></strong>?</p>
+                <p class="text-danger">Esta ação não pode ser desfeita e afetará todos os clientes associados.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" method="post" action="">
+                    <button type="submit" class="btn btn-danger">Excluir</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function confirmDelete(id, name) {
+        document.getElementById('companyName').textContent = name;
+        document.getElementById('deleteForm').action = "{{ app_url }}/admin/companies/delete/" + id;
+        
+        var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        deleteModal.show();
+    }
+</script>
+{% endblock %}

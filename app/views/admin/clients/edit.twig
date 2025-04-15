@@ -1,0 +1,77 @@
+{% extends "layouts/admin.twig" %}
+
+{% block page_title %}Editar Cliente: {{ client.name }}{% endblock %}
+
+{% block page_actions %}
+<a href="{{ app_url }}/admin/clients/view/{{ client.id }}" class="btn btn-sm btn-secondary">
+    <i class="bi bi-arrow-left"></i> Voltar para Detalhes
+</a>
+{% endblock %}
+
+{% block admin_content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold">Editar Cliente</h6>
+    </div>
+    <div class="card-body">
+        <form method="post" action="{{ app_url }}/admin/clients/update/{{ client.id }}">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="name" class="form-label">Nome*</label>
+                    <input type="text" class="form-control" id="name" name="name" value="{{ client.name }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="email" class="form-label">Email*</label>
+                    <input type="email" class="form-control" id="email" name="email" value="{{ client.email }}" required>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="phone" class="form-label">Telefone</label>
+                    <input type="text" class="form-control" id="phone" name="phone" value="{{ client.phone }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="company_name" class="form-label">Nome da Empresa</label>
+                    <input type="text" class="form-control" id="company_name" name="company_name" value="{{ client.company_name }}">
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label for="address" class="form-label">Endereço</label>
+                    <textarea class="form-control" id="address" name="address" rows="3">{{ client.address }}</textarea>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="nif" class="form-label">NIF</label>
+                    <input type="text" class="form-control" id="nif" name="nif" value="{{ client.nif }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="company_id" class="form-label">Empresa Associada</label>
+                    <select class="form-select" id="company_id" name="company_id">
+                        <option value="">Selecione uma empresa (opcional)</option>
+                        {% for company in companies %}
+                        <option value="{{ company.id }}" {% if client.company_id == company.id %}selected{% endif %}>{{ company.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label for="notes" class="form-label">Notas</label>
+                    <textarea class="form-control" id="notes" name="notes" rows="3">{{ client.notes }}</textarea>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{{ app_url }}/admin/clients/view/{{ client.id }}" class="btn btn-secondary me-md-2">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

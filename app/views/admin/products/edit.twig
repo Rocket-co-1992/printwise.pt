@@ -1,0 +1,243 @@
+{% extends "layouts/admin.twig" %}
+
+{% block page_title %}Editar Produto{% endblock %}
+
+{% block page_actions %}
+<a href="{{ app_url }}/admin/products" class="btn btn-sm btn-secondary">
+    <i class="bi bi-arrow-left"></i> Voltar para Produtos
+</a>
+{% endblock %}
+
+{% block admin_content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold">Editar Produto: {{ product.name }}</h6>
+    </div>
+    <div class="card-body">
+        <form method="post" action="{{ app_url }}/admin/products/update/{{ product.id }}" id="productForm">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="name" class="form-label">Nome*</label>
+                    <input type="text" class="form-control" id="name" name="name" required
+                           value="{{ product.name }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="type" class="form-label">Tipo de Produto*</label>
+                    <select class="form-select" id="type" name="type" required>
+                        <option value="">Selecione o tipo</option>
+                        <option value="small" {% if product.type == 'small' %}selected{% endif %}>Pequeno Formato</option>
+                        <option value="large" {% if product.type == 'large' %}selected{% endif %}>Grande Formato</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label for="description" class="form-label">Descrição</label>
+                    <textarea class="form-control" id="description" name="description" rows="3">{{ product.description }}</textarea>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="base_price" class="form-label">Preço Base*</label>
+                    <div class="input-group">
+                        <input type="number" class="form-control" id="base_price" name="base_price" required
+                               step="0.01" min="0" value="{{ product.base_price }}">
+                        <span class="input-group-text" id="price-label">{% if product.type == 'large' %}€/m²{% else %}€{% endif %}</span>
+                    </div>
+                    <div class="form-text" id="priceHelpBlock">
+                        Para produtos de grande formato, o preço é por metro quadrado (€/m²).
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label for="min_qty" class="form-label">Quantidade Mínima</label>
+                    <input type="number" class="form-control" id="min_qty" name="min_qty" min="1"
+                           value="{{ product.min_qty }}">
+                </div>
+            </div>
+            
+            <!-- Campos específicos para pequeno formato -->
+            <div id="small-format-fields" class="format-fields" {% if product.type != 'small' %}style="display: none;"{% endif %}>
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h6 class="m-0">Opções de Pequeno Formato</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="paper_types" class="form-label">Tipos de Papel</label>
+                                <select class="form-select" id="paper_types" name="paper_types[]" multiple>
+                                    <option value="offset" {% if 'offset' in product.paper_types %}selected{% endif %}>Offset</option>
+                                    <option value="couche" {% if 'couche' in product.paper_types %}selected{% endif %}>Couché</option>
+                                    <option value="recycled" {% if 'recycled' in product.paper_types %}selected{% endif %}>Reciclado</option>
+                                    <option value="cardstock" {% if 'cardstock' in product.paper_types %}selected{% endif %}>Cartolina</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="paper_weights" class="form-label">Gramagens</label>
+                                <select class="form-select" id="paper_weights" name="paper_weights[]" multiple>
+                                    <option value="80" {% if 80 in product.paper_weights %}selected{% endif %}>80 g/m²</option>
+                                    <option value="90" {% if 90 in product.paper_weights %}selected{% endif %}>90 g/m²</option>
+                                    <option value="120" {% if 120 in product.paper_weights %}selected{% endif %}>120 g/m²</option>
+                                    <option value="170" {% if 170 in product.paper_weights %}selected{% endif %}>170 g/m²</option>
+                                    <option value="250" {% if 250 in product.paper_weights %}selected{% endif %}>250 g/m²</option>
+                                    <option value="300" {% if 300 in product.paper_weights %}selected{% endif %}>300 g/m²</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="paper_sizes" class="form-label">Tamanhos</label>
+                                <select class="form-select" id="paper_sizes" name="paper_sizes[]" multiple>
+                                    <option value="A6" {% if 'A6' in product.paper_sizes %}selected{% endif %}>A6</option>
+                                    <option value="A5" {% if 'A5' in product.paper_sizes %}selected{% endif %}>A5</option>
+                                    <option value="A4" {% if 'A4' in product.paper_sizes %}selected{% endif %}>A4</option>
+                                    <option value="A3" {% if 'A3' in product.paper_sizes %}selected{% endif %}>A3</option>
+                                    <option value="custom" {% if 'custom' in product.paper_sizes %}selected{% endif %}>Personalizado</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="has_color" name="has_color" value="1" 
+                                           {% if product.has_color %}checked{% endif %}>
+                                    <label class="form-check-label" for="has_color">Impressão Colorida</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="double_sided" name="double_sided" value="1"
+                                           {% if product.double_sided %}checked{% endif %}>
+                                    <label class="form-check-label" for="double_sided">Impressão Frente e Verso</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="has_finishing" name="has_finishing" value="1"
+                                           {% if product.has_finishing %}checked{% endif %}>
+                                    <label class="form-check-label" for="has_finishing">Permite Acabamentos</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Campos específicos para grande formato -->
+            <div id="large-format-fields" class="format-fields" {% if product.type != 'large' %}style="display: none;"{% endif %}>
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h6 class="m-0">Opções de Grande Formato</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="material_types" class="form-label">Materiais</label>
+                                <select class="form-select" id="material_types" name="material_types[]" multiple>
+                                    <option value="vinyl" {% if 'vinyl' in product.material_types %}selected{% endif %}>Vinil</option>
+                                    <option value="canvas" {% if 'canvas' in product.material_types %}selected{% endif %}>Lona</option>
+                                    <option value="backlight" {% if 'backlight' in product.material_types %}selected{% endif %}>Backlight</option>
+                                    <option value="adhesive" {% if 'adhesive' in product.material_types %}selected{% endif %}>Adesivo</option>
+                                    <option value="magnetic" {% if 'magnetic' in product.material_types %}selected{% endif %}>Magnético</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="max_width" class="form-label">Largura Máxima (cm)</label>
+                                <input type="number" class="form-control" id="max_width" name="max_width" min="0"
+                                       value="{{ product.max_width }}">
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="outdoor" name="outdoor" value="1"
+                                           {% if product.outdoor %}checked{% endif %}>
+                                    <label class="form-check-label" for="outdoor">Para Exterior</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="has_eyelets" name="has_eyelets" value="1"
+                                           {% if product.has_eyelets %}checked{% endif %}>
+                                    <label class="form-check-label" for="has_eyelets">Permite Ilhós</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="has_lamination" name="has_lamination" value="1"
+                                           {% if product.has_lamination %}checked{% endif %}>
+                                    <label class="form-check-label" for="has_lamination">Permite Laminação</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label for="finishing_options" class="form-label">Acabamentos Disponíveis</label>
+                    <select class="form-select" id="finishing_options" name="finishing_options[]" multiple>
+                        {% for finishing in finishings %}
+                            <option value="{{ finishing.id }}" 
+                                {% if product.finishing_options and finishing.id in product.finishing_options %}selected{% endif %}>
+                                {{ finishing.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="production_time" class="form-label">Tempo de Produção (horas)</label>
+                    <input type="number" class="form-control" id="production_time" name="production_time" min="1"
+                           value="{{ product.production_time }}">
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check form-switch mt-4">
+                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" 
+                                {% if product.is_active %}checked{% endif %}>
+                        <label class="form-check-label" for="is_active">Produto Ativo</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{{ app_url }}/admin/products" class="btn btn-secondary me-md-2">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Atualizar Produto</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const typeSelect = document.getElementById('type');
+        const smallFormatFields = document.getElementById('small-format-fields');
+        const largeFormatFields = document.getElementById('large-format-fields');
+        const priceLabel = document.getElementById('price-label');
+        
+        function updateFieldsVisibility() {
+            const selectedType = typeSelect.value;
+            
+            smallFormatFields.style.display = selectedType === 'small' ? 'block' : 'none';
+            largeFormatFields.style.display = selectedType === 'large' ? 'block' : 'none';
+            
+            // Atualiza o label do preço
+            if (selectedType === 'large') {
+                priceLabel.textContent = '€/m²';
+            } else {
+                priceLabel.textContent = '€';
+            }
+        }
+        
+        // Adiciona listener para mudanças
+        typeSelect.addEventListener('change', updateFieldsVisibility);
+    });
+</script>
+{% endblock %}

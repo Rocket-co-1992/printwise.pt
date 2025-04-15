@@ -1,0 +1,206 @@
+{% extends "layouts/admin.twig" %}
+
+{% block page_title %}Cliente: {{ client.name }}{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    <a href="{{ app_url }}/admin/clients" class="btn btn-sm btn-secondary">
+        <i class="bi bi-arrow-left"></i> Voltar
+    </a>
+    <a href="{{ app_url }}/admin/clients/edit/{{ client.id }}" class="btn btn-sm btn-primary">
+        <i class="bi bi-pencil"></i> Editar
+    </a>
+    <a href="{{ app_url }}/admin/quotes/create?client_id={{ client.id }}" class="btn btn-sm btn-success">
+        <i class="bi bi-plus-circle"></i> Novo Orçamento
+    </a>
+</div>
+{% endblock %}
+
+{% block admin_content %}
+<div class="row">
+    <div class="col-md-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold">Informações do Cliente</h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <h3>{{ client.name }}</h3>
+                        {% if client.company_name %}
+                            <p class="text-muted">{{ client.company_name }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>Email:</strong><br>
+                        <a href="mailto:{{ client.email }}">{{ client.email }}</a></p>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <p><strong>Telefone:</strong><br>
+                        {% if client.phone %}
+                            {{ client.phone }}
+                        {% else %}
+                            <span class="text-muted">Não informado</span>
+                        {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <p><strong>Endereço:</strong><br>
+                        {% if client.address %}
+                            {{ client.address }}
+                        {% else %}
+                            <span class="text-muted">Não informado</span>
+                        {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>NIF:</strong><br>
+                        {% if client.nif %}
+                            {{ client.nif }}
+                        {% else %}
+                            <span class="text-muted">Não informado</span>
+                        {% endif %}
+                        </p>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <p><strong>Cliente desde:</strong><br>
+                        {{ client.created_at|date('d/m/Y') }}</p>
+                    </div>
+                </div>
+                
+                {% if client.notes %}
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <p><strong>Notas:</strong><br>
+                        {{ client.notes }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold">Orçamentos Recentes</h6>
+                <a href="{{ app_url }}/admin/quotes?client_id={{ client.id }}" class="btn btn-sm btn-primary">Ver Todos</a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Data</th>
+                                <th>Título</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for quote in quotes %}
+                            <tr>
+                                <td>{{ quote.id }}</td>
+                                <td>{{ quote.created_at|date('d/m/Y') }}</td>
+                                <td>{{ quote.title }}</td>
+                                <td>{{ quote.total_price|number_format(2, ',', '.') }} €</td>
+                                <td>
+                                    <span class="badge {% if quote.status == 'pending' %}bg-warning{% elseif quote.status == 'approved' %}bg-success{% elseif quote.status == 'rejected' %}bg-danger{% else %}bg-info{% endif %}">
+                                        {% if quote.status == 'pending' %}Pendente
+                                        {% elseif quote.status == 'approved' %}Aprovado
+                                        {% elseif quote.status == 'rejected' %}Rejeitado
+                                        {% else %}Concluído{% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{{ app_url }}/admin/quotes/view/{{ quote.id }}" class="btn btn-sm btn-info">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center">Nenhum orçamento encontrado para este cliente</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold">Estatísticas do Cliente</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card border-left-primary shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                            Total de Orçamentos</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_quotes }}</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="bi bi-file-earmark-text fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card border-left-success shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                            Orçamentos Aprovados</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.approved_quotes }}</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="bi bi-check-circle fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card border-left-info shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                            Valor Total (€)</div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_value|number_format(2, ',', '.') }}</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="bi bi-currency-euro fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

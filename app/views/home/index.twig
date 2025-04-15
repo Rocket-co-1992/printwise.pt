@@ -1,0 +1,178 @@
+{% extends "layout/main.twig" %}
+
+{% block title %}PrintWise - Serviços de Impressão de Alta Qualidade{% endblock %}
+
+{% block content %}
+<section class="hero bg-light py-5 mb-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1 class="display-4 fw-bold mb-4">Soluções de Impressão Personalizadas</h1>
+                <p class="lead mb-4">A PrintWise oferece serviços de impressão de alta qualidade para empresas e particulares. Desde cartões de visita até banners e muito mais.</p>
+                <div class="d-flex gap-3">
+                    <a href="/product" class="btn btn-primary btn-lg">Ver Produtos</a>
+                    <a href="/contact" class="btn btn-outline-secondary btn-lg">Fale Conosco</a>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <img src="/assets/images/hero-image.jpg" class="img-fluid rounded shadow" alt="PrintWise - Serviços de Impressão">
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="featured-products mb-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Produtos em Destaque</h2>
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            {% if featured_products|length > 0 %}
+                {% for product in featured_products %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm">
+                            <img src="{{ product.image_url|default('/assets/images/default-product.jpg') }}" 
+                                class="card-img-top" 
+                                alt="{{ product.name }}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ product.name }}</h5>
+                                <p class="card-text">{{ product.short_description }}</p>
+                                <p class="fw-bold">€{{ product.price|number_format(2, ',', '.') }}</p>
+                            </div>
+                            <div class="card-footer bg-white">
+                                <a href="/product/show/{{ product.id }}" class="btn btn-primary w-100">Ver Detalhes</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center">
+                    <p>Nenhum produto em destaque no momento.</p>
+                </div>
+            {% endif %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="/product" class="btn btn-outline-primary">Ver Todos os Produtos</a>
+        </div>
+    </div>
+</section>
+
+<section class="services py-5 bg-light mb-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Nossos Serviços</h2>
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+            <div class="col">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="bi bi-printer text-primary" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <h5 class="card-title">Impressão Digital</h5>
+                        <p class="card-text">Impressão digital de alta qualidade para pequenas e médias tiragens.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="bi bi-layout-text-window text-primary" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <h5 class="card-title">Design Gráfico</h5>
+                        <p class="card-text">Criação e edição de designs profissionais para seus materiais impressos.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="bi bi-card-text text-primary" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <h5 class="card-title">Cartões e Papelaria</h5>
+                        <p class="card-text">Cartões de visita, papel timbrado e todo tipo de material corporativo.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="bi bi-sign-turn-right text-primary" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <h5 class="card-title">Sinalização</h5>
+                        <p class="card-text">Placas, banners, adesivos e sinalização para empresas e eventos.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="testimonials mb-5">
+    <div class="container">
+        <h2 class="text-center mb-4">O que Nossos Clientes Dizem</h2>
+        <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <div class="card border-0 shadow">
+                        <div class="card-body text-center p-5">
+                            <p class="lead mb-4">"A PrintWise superou todas as nossas expectativas. Qualidade excepcional e prazo de entrega imbatível!"</p>
+                            <div class="d-flex justify-content-center">
+                                <div class="text-center">
+                                    <h5 class="mb-0">João Silva</h5>
+                                    <p class="text-muted">Empresa ABC</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <div class="card border-0 shadow">
+                        <div class="card-body text-center p-5">
+                            <p class="lead mb-4">"Excelente atendimento e qualidade de impressão. Sempre recomeço para todos os meus amigos!"</p>
+                            <div class="d-flex justify-content-center">
+                                <div class="text-center">
+                                    <h5 class="mb-0">Maria Santos</h5>
+                                    <p class="text-muted">Loja XYZ</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <div class="card border-0 shadow">
+                        <div class="card-body text-center p-5">
+                            <p class="lead mb-4">"O profissionalismo da equipe e a qualidade do produto final são impressionantes. Recomendo!"</p>
+                            <div class="d-flex justify-content-center">
+                                <div class="text-center">
+                                    <h5 class="mb-0">Pedro Costa</h5>
+                                    <p class="text-muted">Restaurante Delícia</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Anterior</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Próximo</span>
+            </button>
+        </div>
+    </div>
+</section>
+
+<section class="cta bg-primary text-white py-5 mb-5">
+    <div class="container text-center">
+        <h2 class="mb-4">Pronto para começar?</h2>
+        <p class="lead mb-4">Entre em contato conosco hoje mesmo para orçamentos ou mais informações sobre nossos serviços.</p>
+        <a href="/contact" class="btn btn-light btn-lg">Fale Conosco</a>
+    </div>
+</section>
+{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+{% endblock %}

@@ -1,0 +1,197 @@
+{% extends "layout/main.twig" %}
+
+{% block title %}Dashboard Admin - PrintWise{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Menu Admin</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="/admin/dashboard" class="list-group-item list-group-item-action active">Dashboard</a>
+                    <a href="/admin/orders" class="list-group-item list-group-item-action">Pedidos</a>
+                    <a href="/admin/products" class="list-group-item list-group-item-action">Produtos</a>
+                    <a href="/admin/users" class="list-group-item list-group-item-action">Usuários</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-10">
+            <h2 class="mb-4">Dashboard</h2>
+
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card text-white bg-primary mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Pedidos Pendentes</h5>
+                            <h2 class="display-4">{{ quoteStats.pending.count }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-success mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Pedidos Aprovados</h5>
+                            <h2 class="display-4">{{ quoteStats.approved.count }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-info mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Total de Clientes</h5>
+                            <h2 class="display-4">{{ totalClients }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-warning mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Total de Empresas</h5>
+                            <h2 class="display-4">{{ totalCompanies }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Pedidos Recentes</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Data</th>
+                                    <th>Cliente</th>
+                                    <th>Produto</th>
+                                    <th>Status</th>
+                                    <th>Valor</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if recentQuotes|length > 0 %}
+                                    {% for quote in recentQuotes %}
+                                    <tr>
+                                        <td>{{ quote.id }}</td>
+                                        <td>{{ quote.created_at|date("d/m/Y") }}</td>
+                                        <td>{{ quote.client_name }}</td>
+                                        <td>{{ quote.product }}</td>
+                                        <td>
+                                            {% if quote.status == 'pending' %}
+                                                <span class="badge bg-warning">Pendente</span>
+                                            {% elseif quote.status == 'approved' %}
+                                                <span class="badge bg-success">Aprovado</span>
+                                            {% elseif quote.status == 'rejected' %}
+                                                <span class="badge bg-danger">Rejeitado</span>
+                                            {% elseif quote.status == 'completed' %}
+                                                <span class="badge bg-info">Concluído</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>€{{ quote.total|number_format(2, ',', '.') }}</td>
+                                        <td>
+                                            <a href="/admin/orders/{{ quote.id }}" class="btn btn-sm btn-primary">Detalhes</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center">Nenhum pedido recente encontrado</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Estatísticas de Pedidos</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="ordersChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Tarefas Pendentes</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Revisar novos pedidos
+                                    <span class="badge bg-primary rounded-pill">{{ quoteStats.pending.count }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Atualizar status de entregas
+                                    <span class="badge bg-primary rounded-pill">{{ quoteStats.approved.count }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Verificar pagamentos pendentes
+                                    <span class="badge bg-primary rounded-pill">3</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Ordem das estatísticas: Pendente, Aprovado, Rejeitado, Concluído
+    const ctx = document.getElementById('ordersChart').getContext('2d');
+    const ordersChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['Pendentes', 'Aprovados', 'Rejeitados', 'Concluídos'],
+            datasets: [{
+                label: 'Status dos Pedidos',
+                data: [
+                    {{ quoteStats.pending.count }}, 
+                    {{ quoteStats.approved.count }}, 
+                    {{ quoteStats.rejected.count }}, 
+                    {{ quoteStats.completed.count }}
+                ],
+                backgroundColor: [
+                    'rgba(255, 193, 7, 0.8)',
+                    'rgba(40, 167, 69, 0.8)',
+                    'rgba(220, 53, 69, 0.8)',
+                    'rgba(23, 162, 184, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(255, 193, 7, 1)',
+                    'rgba(40, 167, 69, 1)',
+                    'rgba(220, 53, 69, 1)',
+                    'rgba(23, 162, 184, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
