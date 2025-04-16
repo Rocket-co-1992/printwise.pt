@@ -3,12 +3,18 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use PrintWise\Core\Router;
+use PrintWise\Core\Config;
 
 // Iniciar sessão
 session_start();
 
-// Carregar configurações
-$config = require_once __DIR__ . '/../config/config.php';
+// Define environment
+if (file_exists(__DIR__ . '/../.env')) {
+    $env = parse_ini_file(__DIR__ . '/../.env');
+    foreach ($env as $key => $value) {
+        putenv("$key=$value");
+    }
+}
 
 // Inicializar o Router
 $router = new Router();
@@ -51,6 +57,7 @@ $router->get('/admin/quotes/edit/{id}', 'QuoteController@edit');
 $router->post('/admin/quotes/update/{id}', 'QuoteController@update');
 $router->get('/admin/quotes/view/{id}', 'QuoteController@show');
 $router->post('/admin/quotes/delete/{id}', 'QuoteController@delete');
+$router->post('/quotes/calculate', 'QuoteController@calculate');
 
 // Rota pública para aprovação de orçamentos
 $router->get('/quotes/view/{hash}', 'QuoteController@publicView');
@@ -70,13 +77,13 @@ $method = $_SERVER['REQUEST_METHOD'];
 $uri = $_SERVER['REQUEST_URI'];
 
 // Remover o caminho base da URI se necessário
-$basePath = parse_url($config['app_url'], PHP_URL_PATH) ?? '';
+$basePath = parse_url(Config::get('app.app_url'), PHP_URL_PATH) ?? '';
 if ($basePath && strpos($uri, $basePath) === 0) {
     $uri = substr($uri, strlen($basePath));
 }
 
 // Adicionar barra inicial se não existir
-if ($uri[0] !== '/') {
+if (!empty($uri) && $uri[0] !== '/') {
     $uri = '/' . $uri;
 }
 
@@ -98,11 +105,14 @@ try {
     // Imprimir a resposta
     echo $response;
 } catch (Exception $e) {
-    if ($config['debug']) {
+    if (Config::get('app.debug')) {
         echo '<h1>Erro</h1>';
         echo '<p>' . $e->getMessage() . '</p>';
         echo '<pre>' . $e->getTraceAsString() . '</pre>';
     } else {
         echo 'Ocorreu um erro inesperado.';
+        
+        // Log error
+        error_log($e->getMessage() . "\n" . $e->getTraceAsString());
     }
 }

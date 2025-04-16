@@ -9,6 +9,205 @@ class Quote extends Model
 {
     protected string $table = 'quotes';
     
+    // Quote statuses
+    const STATUS_PENDING = 'pending';
+    const STATUS_APPROVED = 'approved';
+    const STATUS_REJECTED = 'rejected';
+    const STATUS_COMPLETED = 'completed';
+    
+    /**
+     * Find a quote with related data
+     * 
+     * @param int $id Quote ID
+     * @return array|null Quote with related data or null if not found
+     */
+    public function findWithRelations(int $id): ?array
+    {
+        $sql = "SELECT q.*, 
+                c.name as client_name, c.email as client_email,
+                p.name as product_name,
+                comp.name as company_name
+                FROM {$this->table} q
+                LEFT JOIN clients c ON q.client_id = c.id
+                LEFT JOIN products p ON q.product_id = p.id
+                LEFT JOIN companies comp ON c.company_id = comp.id
+                WHERE q.id = ?";
+        $stmt = Database::query($sql, [$id]);
+        $result = $stmt->fetch();
+        return $result ?: null;
+    }
+    
+    /**
+     * Get all quotes with related data
+     * 
+     * @return array Quotes with related data
+     */
+    public function getAllWithRelations(): array
+    {
+        $sql = "SELECT q.*, 
+                c.name as client_name,
+                p.name as product_name,
+                comp.name as company_name
+                FROM {$this->table} q
+                LEFT JOIN clients c ON q.client_id = c.id
+                LEFT JOIN products p ON q.product_id = p.id
+                LEFT JOIN companies comp ON c.company_id = comp.id
+                ORDER BY q.created_at DESC";
+        $stmt = Database::query($sql);
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * Get quotes by client ID
+     * 
+     * @param int $clientId Client ID
+     * @return array Client's quotes
+     */
+    public function findByClient(int $clientId): array
+    {
+        $sql = "SELECT q.*, p.name as product_name
+                FROM {$this->table} q
+                LEFT JOIN products p ON q.product_id = p.id
+                WHERE q.client_id = ?
+                ORDER BY q.created_at DESC";
+        $stmt = Database::query($sql, [$clientId]);
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * Get quotes by company ID
+     * 
+     * @param int $companyId Company ID
+     * @return array Company's quotes
+     */
+    public function findByCompany(int $companyId): array
+    {
+        $sql = "SELECT q.*, 
+                c.name as client_name, c.email as client_email,
+                p.name as product_name, p.type as product_type
+                FROM {$this->table} q
+                LEFT JOIN clients c ON q.client_id = c.id
+                LEFT JOIN products p ON q.product_id = p.id
+                WHERE c.company_id = ?
+                ORDER BY q.created_at DESC";
+        $stmt = Database::query($sql, [$companyId]);
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * Add finishing to quote
+     * 
+     * @param int $quoteId Quote ID
+     * @param int $finishingId Finishing ID
+     * @return bool Success or failure
+     */
+    public function addFinishing(int $quoteId, int $finishingId): bool
+    {
+        $sql = "INSERT INTO quote_finishings (quote_id, finishing_id) VALUES (?, ?)";
+        $stmt = Database::query($sql, [$quoteId, $finishingId]);
+        return $stmt->rowCount() > 0;
+    }
+    
+    /**
+     * Remove finishing from quote
+     * 
+     * @param int $quoteId Quote ID
+     * @param int $finishingId Finishing ID
+     * @return bool Success or failure
+     */
+    public function removeFinishing(int $quoteId, int $finishingId): bool
+    {
+        $sql = "DELETE FROM quote_finishings WHERE quote_id = ? AND finishing_id = ?";
+        $stmt = Database::query($sql, [$quoteId, $finishingId]);
+        return $stmt->rowCount() > 0;
+    }
+    
+    /**
+     * Get quotes with pagination
+     * 
+     * @param int $page Current page number
+     * @param int $perPage Items per page
+     * @param string|null $status Filter by status (optional)
+     * @return array Quotes and pagination data
+     */
+    public function getPaginated(int $page = 1, int $perPage = 10, ?string $status = null): array
+    {
+        $offset = ($page - 1) * $perPage;
+        $params = [];
+        $whereClause = '';
+        
+        if ($status) {
+            $whereClause = "WHERE q.status = ?";
+            $params[] = $status;
+        }
+        
+        $sql = "SELECT q.*, 
+                c.name as client_name,
+                p.name as product_name,
+                comp.name as company_name
+                FROM {$this->table} q
+                LEFT JOIN clients c ON q.client_id = c.id
+                LEFT JOIN products p ON q.product_id = p.id
+                LEFT JOIN companies comp ON c.company_id = comp.id
+                $whereClause
+                ORDER BY q.created_at DESC
+                LIMIT ? OFFSET ?";
+                
+        $params[] = $perPage;
+        $params[] = $offset;
+        
+        $stmt = Database::query($sql, $params);
+        $quotes = $stmt->fetchAll();
+        
+        // Get total count
+        $countParams = [];
+        $countWhereClause = '';
+        
+        if ($status) {
+            $countWhereClause = "WHERE status = ?";
+            $countParams[] = $status;
+        }
+        
+        $sqlCount = "SELECT COUNT(*) as total FROM {$this->table} $countWhereClause";
+        $stmtCount = Database::query($sqlCount, $countParams);
+        $totalCount = $stmtCount->fetch()['total'];
+        
+        $totalPages = ceil($totalCount / $perPage);
+        
+        return [
+            'quotes' => $quotes,
+            'pagination' => [
+                'total' => $totalCount,
+                'per_page' => $perPage,
+                'current_page' => $page,
+                'total_pages' => $totalPages
+            ]
+        ];
+    }
+    
+    /**
+     * Search quotes
+     * 
+     * @param string $term Search term
+     * @return array Matching quotes
+     */
+    public function search(string $term): array
+    {
+        $term = "%$term%";
+        $sql = "SELECT q.*, 
+                c.name as client_name, c.email as client_email,
+                p.name as product_name, p.type as product_type,
+                comp.name as company_name
+                FROM {$this->table} q
+                LEFT JOIN clients c ON q.client_id = c.id
+                LEFT JOIN products p ON q.product_id = p.id
+                LEFT JOIN companies comp ON c.company_id = comp.id
+                WHERE c.name LIKE ? OR p.name LIKE ? OR comp.name LIKE ? OR q.title LIKE ? OR q.description LIKE ?
+                ORDER BY q.created_at DESC";
+        $stmt = Database::query($sql, [$term, $term, $term, $term, $term]);
+        return $stmt->fetchAll();
+    }
+    
     public function findAllWithDetails(): array
     {
         $sql = "SELECT q.*, c.name as client_name, p.name as product_name, p.type as product_type

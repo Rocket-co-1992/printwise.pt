@@ -1,23 +1,18 @@
 <?php
 
-namespace App\Models;
+namespace PrintWise\Models;
 
-use Core\Model;
-use Core\Database;
+use PrintWise\Core\Database;
+use PrintWise\Core\Model;
 
-class User extends Model
+class User extends Model 
 {
-    protected $table = 'users';
+    protected string $table = 'users';
     
     // User roles
     const ROLE_ADMIN = 'admin';
     const ROLE_MANAGER = 'manager';
     const ROLE_CUSTOMER = 'customer';
-    
-    public function __construct()
-    {
-        parent::__construct();
-    }
     
     /**
      * Find a user by email
@@ -25,14 +20,12 @@ class User extends Model
      * @param string $email User email
      * @return array|null User data or null if not found
      */
-    public function findByEmail($email)
+    public function findByEmail(string $email): ?array
     {
-        $sql = "SELECT * FROM {$this->table} WHERE email = :email LIMIT 1";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindParam(':email', $email);
-        $stmt->execute();
-        
-        return $stmt->fetch(Database::FETCH_ASSOC);
+        $sql = "SELECT * FROM {$this->table} WHERE email = ?";
+        $stmt = Database::query($sql, [$email]);
+        $result = $stmt->fetch();
+        return $result ?: null;
     }
     
     /**
@@ -40,90 +33,67 @@ class User extends Model
      * 
      * @param string $email User email
      * @param string $password User password
-     * @return array|false User data or false if authentication failed
+     * @return array|null User data or null if authentication failed
      */
-    public function authenticate($email, $password)
+    public function authenticate(string $email, string $password): ?array
     {
         $user = $this->findByEmail($email);
         
         if ($user && password_verify($password, $user['password'])) {
-            // Remove password before returning user data
-            unset($user['password']);
             return $user;
         }
         
-        return false;
+        return null;
     }
     
     /**
      * Create a new user
      * 
      * @param array $data User data
-     * @return int|false The ID of the newly created user, or false on failure
+     * @return int New user ID
      */
-    public function create($data)
+    public function createUser(array $data): int
     {
-        // Hash password
-        $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
-        
-        // Set default role if not provided
-        if (!isset($data['role'])) {
-            $data['role'] = self::ROLE_CUSTOMER;
+        // Hash the password
+        if (isset($data['password'])) {
+            $data['password'] = password_hash($data['password'], PASSWORD_BCRYPT);
         }
         
-        // Set creation date
-        $data['created_at'] = date('Y-m-d H:i:s');
-        
-        return parent::create($data);
+        return $this->create($data);
     }
     
     /**
-     * Update a user
+     * Update user password
      * 
-     * @param int $id User ID
-     * @param array $data User data to update
-     * @return bool Success status
+     * @param int $userId User ID
+     * @param string $newPassword New password
+     * @return bool Success or failure
      */
-    public function update($id, $data)
+    public function updatePassword(int $userId, string $newPassword): bool
     {
-        // Hash password if provided
-        if (isset($data['password']) && !empty($data['password'])) {
-            $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
-        } else {
-            // Don't update password if empty
-            unset($data['password']);
-        }
-        
-        // Set update date
-        $data['updated_at'] = date('Y-m-d H:i:s');
-        
-        return parent::update($id, $data);
+        $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
+        return $this->update($userId, ['password' => $hashedPassword]);
     }
     
     /**
-     * Get all users with pagination
+     * Get users with pagination
      * 
-     * @param int $page Current page
+     * @param int $page Current page number
      * @param int $perPage Items per page
-     * @return array Array with users and pagination data
+     * @return array Users and pagination data
      */
-    public function getAllPaginated($page = 1, $perPage = 10)
+    public function getPaginated(int $page = 1, int $perPage = 10): array
     {
         $offset = ($page - 1) * $perPage;
         
-        // Get users
-        $sql = "SELECT * FROM {$this->table} ORDER BY id DESC LIMIT :limit OFFSET :offset";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindParam(':limit', $perPage, \PDO::PARAM_INT);
-        $stmt->bindParam(':offset', $offset, \PDO::PARAM_INT);
-        $stmt->execute();
-        $users = $stmt->fetchAll(Database::FETCH_ASSOC);
+        $sql = "SELECT * FROM {$this->table} ORDER BY id DESC LIMIT ? OFFSET ?";
+        $stmt = Database::query($sql, [$perPage, $offset]);
+        $users = $stmt->fetchAll();
         
         // Get total count
         $sqlCount = "SELECT COUNT(*) as total FROM {$this->table}";
-        $stmtCount = $this->db->prepare($sqlCount);
-        $stmtCount->execute();
-        $totalCount = $stmtCount->fetch(Database::FETCH_ASSOC)['total'];
+        $stmtCount = Database::query($sqlCount);
+        $totalCount = $stmtCount->fetch()['total'];
         
         $totalPages = ceil($totalCount / $perPage);
         
